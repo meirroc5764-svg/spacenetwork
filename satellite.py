@@ -14,7 +14,13 @@ class Satellite(SpaceEntity):
 
 def attempt_transmission(packet: Packet):
     try:
-        space_network.send(packet)
+        #space_network.send(packet)
+        if isinstance(packet, RelayPacket):
+            inner_packet = packet.data
+            print(f"Unwrapping and forwarding to {inner_packet.receiver}{packet.sender}")
+            attempt_transmission(packet.data)
+        else:
+            print(f"Final destination reached: [{packet.data}] from {packet.sender.name}")
     except TemporalInterferenceError:
         print("Interference, waiting...")
         time.sleep(2)
@@ -29,12 +35,21 @@ def attempt_transmission(packet: Packet):
     except OutOfRangeError:
         print("Target out of range")
         raise BrokenConnectionError
+class RelayPacket(Packet):
+    def __init__(self, packet_to_relay, sender,proxy):
+        super().__init__(packet_to_relay, sender,proxy)
+    def __repr__(self):
+        return RelayPacket(f"[{self.data}] "
+                           f"to {self.receiver} from {self.sender}")
 
-space_network = SpaceNetwork(level=3)
-space = Satellite("Sat1", 100)
+space_network = SpaceNetwork(level=4)
+space=Satellite("Earth",0)
+space1 = Satellite("Sat1", 100)
 space2 = Satellite("sat2", 200)
-packet = Packet("dalbaeb", space, space2)
+#packet = Packet("dalbaeb", space, space2)
+p_final=Packet("hello from the Earth",space1,space2)
+p_earth_to_sat1=RelayPacket(p_final,space,space1)
 try:
-    attempt_transmission(packet)
-except:
+    attempt_transmission(p_earth_to_sat1)
+except BrokenConnectionError:
     print("Transmission failed")
