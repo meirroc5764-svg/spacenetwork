@@ -49,7 +49,7 @@ class RelayPacket(Packet):
                 f"from {self.sender} to {self.receiver}) ")
 
 
-space_network = SpaceNetwork(level=5)
+space_network = SpaceNetwork(level=6)
 space = Satellite("Earth", 0)
 space1 = Satellite("Sat1", 100)
 space2 = Satellite("sat2", 200)
